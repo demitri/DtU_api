@@ -59,7 +59,8 @@ def create_app(debug=False, conf=dict()):
 				# to a particular configuration file in this module under "configuration_files".
 				# The key is 'flask_config_file', and the value is the name of the configuration
 				# file.
-				server_config_file = _app_setup_utils.getConfigFile(uwsgi.opt['flask-config-file'])
+				config_file = uwsgi.opt['flask-config-file'].decode("utf-8")
+				server_config_file = _app_setup_utils.getConfigFile(config_file)
 			except ImportError:
 				print("Trying to run in production mode, but not running under uWSGI.\n"
 					  "You might try running again with the '--debug' (or '-d') flag.")
