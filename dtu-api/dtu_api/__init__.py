@@ -21,9 +21,11 @@ def register_blueprints(app=None):
 	'''
 	from .controllers.index import index_page
 	from .api_calls.api_histogram import api_histogram
+	from .api_calls.api_histogram2d import api_histogram_2d
 
 	app.register_blueprint(index_page)
 	app.register_blueprint(api_histogram)
+	app.register_blueprint(api_histogram_2d)
 
 # ================================================================================
 

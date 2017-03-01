@@ -3,7 +3,7 @@
 import flask
 from flask import request, make_response, current_app
 
-from . import make_json_response
+from . import valueFromRequest, make_json_response
 
 api_histogram = flask.Blueprint("api_histogram", __name__)
 
@@ -11,8 +11,23 @@ api_histogram = flask.Blueprint("api_histogram", __name__)
 def histogram():
 	'''
 	
-	'''
-	test_dict = {"A":"value"}
+	Parameters:
+		
+		attribute (string) : column name
+		range (float, float) : range of values
+		n_bins (integer) [optional] : number of bins
 	
-	return make_json_response(test_dict)
+	'''
+	
+	return_array = []	
+	
+	attribute = valueFromRequest(key="attribute", request=request)
+	range = valueFromRequest(key="range", request=request, asList=True)
+	n_bin = valueFromRequest(key="n_bin", request=request)
+	
+	return_array.append(attribute)
+	return_array.append(range)
+	return_array.append(n_bin)
+			
+	return make_json_response(return_array)
 	
