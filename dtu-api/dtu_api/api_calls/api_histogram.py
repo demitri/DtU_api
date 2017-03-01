@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+import numpy as np
+
 import flask
 from flask import request, make_response, current_app
 
@@ -29,5 +31,5 @@ def histogram():
 	return_array.append(range)
 	return_array.append(n_bin)
 			
-	return make_json_response(return_array)
+	return make_json_response(np.random.rand(500).tolist())
 	
