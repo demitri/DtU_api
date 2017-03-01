@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+import numpy as np
+
 import flask
 from flask_restful import reqparse
 from flask import request, make_response, current_app
@@ -30,12 +32,10 @@ def histogram2d():
 	y_range = valueFromRequest(key="y_range", request=request, asList=True)
 	x_n_bins = valueFromRequest(key="x_n_bins", request=request)
 	y_n_bins = valueFromRequest(key="y_n_bins", request=request)
+		
+	query = "SELECT * FROM kic LIMIT 2"
 	
-	return_array.append(attribute)
-	return_array.append(range)
-	return_array.append(n_bin)
-			
-	return make_json_response(return_array)
+	return make_json_response(np.random.rand(500,500).tolist())
 	
 
 
