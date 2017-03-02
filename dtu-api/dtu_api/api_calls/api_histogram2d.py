@@ -7,36 +7,44 @@ from flask_restful import reqparse
 from flask import request, make_response, current_app
 
 from . import valueFromRequest, make_json_response
+from ..database_support import APIDB, database_cursor
 
 api_histogram_2d = flask.Blueprint("api_histogram_2d", __name__)
 
 @api_histogram_2d.route("/histogram_2d", methods=['GET'])
 def histogram2d():
 	'''
-	
+
 	Parameters:
-		
+
 		x_attribute (string) : column name
 		y_attribute (string) : column name
 		x_range (float, float) : range of values
 		y_range (float, float) : range of values
 		x_n_bins (integer) [optional] : number of bins, x axis
 		x_n_bins (integer) [optional] : number of bins, y axis
-	
+
 	'''
-	
-	return_array = []	
-	
-	attribute = valueFromRequest(key="attribute", request=request)
+
+	x_attribute = valueFromRequest(key="x_attribute", request=request)
+	y_attribute = valueFromRequest(key="y_attribute", request=request)
 	x_range = valueFromRequest(key="x_range", request=request, asList=True)
 	y_range = valueFromRequest(key="y_range", request=request, asList=True)
 	x_n_bins = valueFromRequest(key="x_n_bins", request=request)
 	y_n_bins = valueFromRequest(key="y_n_bins", request=request)
-		
-	query = "SELECT * FROM kic LIMIT 2"
-	
-	return make_json_response(np.random.rand(500,500).tolist())
-	
 
+	apidb = APIDB()
+	pool = apidb.pool()
+	with database_cursor(pool) as cursor:
 
+		query = "select * from pg_hist_2d('select {0},{1} from kic', ARRAY[{2},{3}], ARRAY[{4},{5}], ARRAY[{6},{7}]);".format(x_attribute, y_attribute, x_n_bins, y_n_bins, x_range[0], y_range[0], x_range[1], y_range[1])
+		cursor.execute(query)
 
+		values = np.zeros((int(y_n_bins), int(x_n_bins)))
+
+		# Only non-zero entries are returned
+		for row in cursor.fetchall():
+			x_id, y_id, count = row
+			values[y_id, x_id] = count
+
+	return make_json_response(values.tolist())
