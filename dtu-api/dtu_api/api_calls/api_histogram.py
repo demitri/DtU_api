@@ -36,7 +36,6 @@ def histogram():
 	with database_cursor(pool) as cursor:
 
 		query = "select * from pg_hist_1d('select {0} from kic {1} LIMIT 1000000', ARRAY[{2}], ARRAY[{3}], ARRAY[{4}]);".format(attribute, where, n_bin, range[0], range[1])
-		print(query)
 		cursor.execute(query)
 
 		values = np.zeros(int(n_bin))
