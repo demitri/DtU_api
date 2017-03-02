@@ -6,6 +6,7 @@ from __future__ import print_function
 import sys
 import socket
 
+import psycopg2
 from flask import Flask
 
 from . import jinja_filters
@@ -22,10 +23,12 @@ def register_blueprints(app=None):
 	from .controllers.index import index_page
 	from .api_calls.api_histogram import api_histogram
 	from .api_calls.api_histogram2d import api_histogram_2d
+	from .api_calls.api_db_test import api_db_test
 
 	app.register_blueprint(index_page)
 	app.register_blueprint(api_histogram)
 	app.register_blueprint(api_histogram_2d)
+	app.register_blueprint(api_db_test)
 
 # ================================================================================
 
@@ -87,6 +90,31 @@ def create_app(debug=False, conf=dict()):
 		sys.modules["decimal"] = cdecimal
 	except ImportError:
 		pass # not available
+
+	# -----------------------------------------------------------------------------
+	# The JSON module is unable to serialize Decimal objects, which is a problem
+	# as psycopg2 returns Decimal objects for numbers. This block of code overrides
+	# how psycopg2 parses decimal data types coming from the database, using
+	# the "float" data type instead of Decimal. This must be done separately for
+	# array data types.
+	# 
+	# See link for other data types: http://initd.org/psycopg/docs/extensions.html
+	# -----------------------------------------------------------------------------
+	DEC2FLOAT = psycopg2.extensions.new_type(
+	    psycopg2.extensions.DECIMAL.values,
+	    'DEC2FLOAT',
+	    lambda value, curs: float(value) if value is not None else None)
+	psycopg2.extensions.register_type(DEC2FLOAT)
+	
+	# the decimal array is returned as a string in the form:
+	# "{1,2,3,4}"
+	DECARRAY2FLOATARRAY = psycopg2.extensions.new_type(
+		psycopg2.extensions.DECIMALARRAY.values,
+		'DECARRAY2FLOATARRAY',
+		lambda value, curs: [float(x) if x else None for x in value[1:-1].split(",")] if value else None)
+	#	lambda value, curs: sys.stdout.write(value))
+	psycopg2.extensions.register_type(DECARRAY2FLOATARRAY)
+	# -----------------------------------------------------------------------------
 
 	if conf["usingSQLAlchemy"]:
 		if conf["usingPostgreSQL"]:
