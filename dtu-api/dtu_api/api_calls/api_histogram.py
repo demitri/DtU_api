@@ -7,6 +7,7 @@ from flask import request, make_response, current_app
 
 from . import valueFromRequest, make_json_response
 from ..database_support import APIDB, database_cursor
+from .utils import selection_to_where
 
 
 api_histogram = flask.Blueprint("api_histogram", __name__)
@@ -27,13 +28,14 @@ def histogram():
 	range = valueFromRequest(key="range", request=request, asList=True)
 	n_bin = valueFromRequest(key="n_bin", request=request, asList=False)
 
+	selection = valueFromRequest(key="selection", request=request, asList=False)
+	where = selection_to_where(selection)
+
 	apidb = APIDB()
 	pool = apidb.pool()
 	with database_cursor(pool) as cursor:
 
-		print(int(n_bin), range)
-
-		query = "select * from pg_hist_1d('select {0} from kic', ARRAY[{1}], ARRAY[{2}], ARRAY[{3}]);".format(attribute, n_bin, range[0], range[1])
+		query = "select * from pg_hist_1d('select {0} from kic {1} LIMIT 1000000', ARRAY[{2}], ARRAY[{3}], ARRAY[{4}]);".format(attribute, where, n_bin, range[0], range[1])
 		print(query)
 		cursor.execute(query)
 
@@ -41,7 +43,6 @@ def histogram():
 
 		# Only non-zero entries are returned
 		for row in cursor.fetchall():
-			print(row)
 			bin_id, count = row
 			values[bin_id] = count
 
