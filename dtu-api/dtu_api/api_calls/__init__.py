@@ -23,7 +23,7 @@ def valueFromRequest(key=None, request=None, default=None, lower=False, asList=F
 				return True
 			if lower:
 				value = value.lower()
-			if list:
+			if asList:
 				value = value.split(",")
 			return value
 		except KeyError:
@@ -33,7 +33,7 @@ def valueFromRequest(key=None, request=None, default=None, lower=False, asList=F
 		if value != None:
 			if lower:
 				value = value.lower()
-			if list:
+			if asList:
 				value = value.split(",")
 		return value
 
